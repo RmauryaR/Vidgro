@@ -32,31 +32,39 @@ const Sidebar = ({ sidebar, handleToggleSidebar }) => {
       className={sidebar ? "sidebar open" : "sidebar"}
       onClick={() => handleToggleSidebar(false)}
     >
-      <li onClick={goHome}>
-        <MdHome size={23} />
-        <span>Home</span>
-      </li>
-
+      <Link to="/feed/">
+        <li onClick={goHome}>
+          <MdHome size={23} />
+          <span>Home</span>
+        </li>
+      </Link>
       <Link to="/feed/subscriptions">
         <li>
           <MdSubscriptions size={23} />
           <span>Subscription</span>
         </li>
       </Link>
+      <Link to="/feed/">
+        <li>
+          <MdThumbUp size={23} />
+          <span>Liked Videos</span>
+        </li>
+      </Link>
 
-      <li>
-        <MdThumbUp size={23} />
-        <span>Liked Videos</span>
-      </li>
-      <li>
-        <MdHistory size={23} />
-        <span>History</span>
-      </li>
+      <Link to="/feed/">
+        <li>
+          <MdHistory size={23} />
+          <span>History</span>
+        </li>
+      </Link>
 
-      <li>
-        <MdLibraryBooks size={23} />
-        <span>Library</span>
-      </li>
+      <Link to="/feed/">
+        <li>
+          <MdLibraryBooks size={23} />
+          <span>Library</span>
+        </li>
+      </Link>
+
       <li>
         <MdSentimentDissatisfied size={23} />
         <span>I don't know</span>

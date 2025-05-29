@@ -7,6 +7,11 @@ import {
   getCommentsOfVideoById,
 } from "../../redux/actions/comments.action";
 const Comments = ({ videoId, totalComments }) => {
+  // const { photoURL } = useSelector((state) => state.auth?.user);
+  const user = useSelector((state) => state.auth?.user);
+  const photoURL =
+    user?.photoURL || "https://www.w3schools.com/howto/img_avatar.png"; // fallback avatar
+
   const dispatch = useDispatch();
   const [text, setText] = useState("");
   useEffect(() => {
@@ -32,11 +37,7 @@ const Comments = ({ videoId, totalComments }) => {
     <div className="comments">
       <p>{totalComments} comments</p>
       <div className="comment__form d-flex w-100 my-2">
-        <img
-          src="https://static.vecteezy.com/system/resources/thumbnails/027/951/137/small_2x/stylish-spectacles-guy-3d-avatar-character-illustrations-png.png"
-          alt=""
-          className="rounded-circle mr-3"
-        />
+        <img src={photoURL} alt="" className="rounded-circle mr-3" />
         <form onSubmit={handleComment} className="d-flex flex-grow-1">
           <input
             type="text"

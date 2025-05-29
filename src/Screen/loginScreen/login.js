@@ -73,11 +73,11 @@ const LoginScreen = () => {
     <div className="login">
       <div className="login__Container">
         <img src={Youtubeimage} alt="" />
-        <h3>Youtube Clone</h3>
+        <h3>Widgro</h3>
         <button onClick={handleLogin}>Login with google</button>
         <p>
-          This Youtube clone project made using youtube data API <br /> (This
-          app does not collect your data) <br />
+          This Widgro(Youtube clone) project made using youtube data API <br />{" "}
+          (This app does not collect your data) <br />
           ******
           <br />
           <a

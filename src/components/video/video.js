@@ -6,6 +6,7 @@ import request from "../../api";
 import moment from "moment";
 import numeral from "numeral";
 import { useNavigate } from "react-router-dom";
+
 const VID = ({ video, channelScreen }) => {
   const {
     id,
@@ -20,12 +21,13 @@ const VID = ({ video, channelScreen }) => {
 
   const [views, setViews] = useState(null);
   const [duration, setDuration] = useState(null);
-  const [channelIcon, setchannelIcon] = useState(null);
+  const [channelIcon, setChannelIcon] = useState(null);
 
   const _videoId = id?.videoId || id;
   const navigate = useNavigate();
+
   useEffect(() => {
-    const get_video_details = async () => {
+    const getVideoDetails = async () => {
       try {
         const {
           data: { items },
@@ -35,6 +37,7 @@ const VID = ({ video, channelScreen }) => {
             id: _videoId,
           },
         });
+
         if (items && items.length > 0) {
           setDuration(items[0].contentDetails.duration);
           setViews(items[0].statistics.viewCount);
@@ -43,34 +46,37 @@ const VID = ({ video, channelScreen }) => {
         console.error("Error fetching video details:", error);
       }
     };
-    get_video_details();
+
+    getVideoDetails();
   }, [_videoId]);
 
   useEffect(() => {
-    const get_channel_icon = async () => {
-      const {
-        data: { items },
-      } = await request("/channels", {
-        params: {
-          part: "snippet",
-          id: channelId,
-        },
-      });
-      setchannelIcon(items[0].snippet.thumbnails.default);
+    const getChannelIcon = async () => {
+      try {
+        const {
+          data: { items },
+        } = await request("/channels", {
+          params: {
+            part: "snippet",
+            id: channelId,
+          },
+        });
+
+        if (items && items.length > 0) {
+          setChannelIcon(items[0].snippet.thumbnails.default);
+        }
+      } catch (error) {
+        console.error("Error fetching channel details:", error);
+      }
     };
-    get_channel_icon();
+
+    getChannelIcon();
   }, [channelId]);
 
-  // const seconds = moment.duration(duration).asSecond();
-
   const parseDuration = (duration) => {
-    if (!duration) {
-      return 0; // or any default value if duration is null or undefined
-    }
+    if (!duration) return 0;
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-    if (!match) {
-      return 0; // handle cases where duration format doesn't match
-    }
+    if (!match) return 0;
     const hours = parseInt(match[1], 10) || 0;
     const minutes = parseInt(match[2], 10) || 0;
     const seconds = parseInt(match[3], 10) || 0;
@@ -78,33 +84,30 @@ const VID = ({ video, channelScreen }) => {
   };
 
   const seconds = duration ? parseDuration(duration) : 0;
-  const _duration = moment.utc(seconds * 1000).format("mm:ss");
+  const formattedDuration = moment.utc(seconds * 1000).format("mm:ss");
 
   const handleVideoClick = () => {
     navigate(`/watch/${_videoId}`);
   };
+
   return (
     <div className="video" onClick={handleVideoClick}>
       <div className="video__top">
-        {/* <img src={medium.url} alt="" /> */}
         <LazyLoadImage src={medium.url} effect="blur" />
-        <span className="video__top__duration">{_duration}</span>
+        <span className="video__top__duration">{formattedDuration}</span>
       </div>
       <div className="video__title">{title}</div>
       <div className="video__details">
         <span>
           <AiFillEye />
-          {numeral(views).format("0.a")} views •
+          {views ? numeral(views).format("0.a") : "0"} views •
         </span>
-        <span> {moment(publishedAt).fromNow()}</span>
+        <span>{moment(publishedAt).fromNow()}</span>
       </div>
-      {channelScreen && (
-        <div className="video__channel">
-          {/* <img src={channelIcon?.url} alt="" /> */}
-          <LazyLoadImage src={channelIcon?.url} effect="blur" />
-          <p>{channelTitle}</p>
-        </div>
-      )}
+      <div className="video__channel">
+        <LazyLoadImage src={channelIcon?.url} effect="blur" />
+        <p>{channelTitle}</p>
+      </div>
     </div>
   );
 };

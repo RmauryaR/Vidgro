@@ -6,11 +6,13 @@ import {
   SET_SUBSCRIPTION_STATUS,
 } from "../actionType";
 
+// Get Channel Details
 export const getChannelDetails = (id) => async (dispatch) => {
   try {
     dispatch({
       type: CHANNEL_DETAILS_REQUEST,
     });
+
     const { data } = await request.get("/channels", {
       params: {
         part: "snippet,statistics,contentDetails",
@@ -18,19 +20,26 @@ export const getChannelDetails = (id) => async (dispatch) => {
       },
     });
 
-    dispatch({
-      type: CHANNEL_DETAILS_SUCCESS,
-      payload: data.items[0],
-    });
+    // Ensure data and items are valid
+    if (data?.items?.length > 0) {
+      dispatch({
+        type: CHANNEL_DETAILS_SUCCESS,
+        payload: data.items[0],
+      });
+    } else {
+      throw new Error("No channel data returned");
+    }
   } catch (error) {
-    console.log(error.response.data);
+    console.error("Channel Details Error:", error.message);
     dispatch({
       type: CHANNEL_DETAILS_FAIL,
-      payload: error.response.data,
+      payload:
+        error.response?.data?.message || error.message || "Unknown error",
     });
   }
 };
 
+// Check Subscription Status
 export const checkSubscriptionStatus = (id) => async (dispatch, getState) => {
   try {
     const { auth } = getState();
@@ -45,16 +54,20 @@ export const checkSubscriptionStatus = (id) => async (dispatch, getState) => {
         mine: true,
       },
       headers: {
-        Authorization: `Bearer ${getState().auth.accessToken}`,
+        Authorization: `Bearer ${auth.accessToken}`,
       },
     });
 
     dispatch({
       type: SET_SUBSCRIPTION_STATUS,
-      payload: data.items.length !== 0,
+      payload: data?.items?.length !== 0,
     });
-    console.log(data);
+
+    console.log("Subscription check response:", data);
   } catch (error) {
-    console.log(error.response.data.message);
+    console.error(
+      "Subscription Status Error:",
+      error.response?.data?.message || error.message || "Unknown error"
+    );
   }
 };

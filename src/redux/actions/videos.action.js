@@ -14,52 +14,58 @@ import {
   SUBSCRIPTION_CHANNEL_FAIL,
   SUBSCRIPTION_CHANNEL_REQUEST,
   SUBSCRIPTION_CHANNEL_SUCCESS,
+  CHANNEL_VIDEOS_FAIL,
+  CHANNEL_VIDEOS_REQUEST,
+  CHANNEL_VIDEOS_SUCCESS,
 } from "../actionType";
 import request from "../../api";
 
+// Helper for safe error messages
+const getErrorMessage = (error) =>
+  error.response?.data?.message || error.message || "Something went wrong";
+
 export const getPopularVideos = () => async (dispatch, getState) => {
   try {
-    dispatch({
-      type: HOME_VIDEOS_REQUEST,
-    });
+    dispatch({ type: HOME_VIDEOS_REQUEST });
 
-    const { data } = await request.get("/videos", {
+    const response = await request.get("/videos", {
       params: {
         part: "snippet,contentDetails,statistics",
         chart: "mostPopular",
         regionCode: "IN",
         maxResults: 21,
-
         pageToken: getState().homeVideos.nextPageToken,
       },
     });
-    dispatch({
-      type: HOME_VIDEOS_SUCCESS,
-      payload: {
-        videos: data.items,
-        nextPageToken: data.nextPageToken,
-        category: "All",
-      },
-    });
-  } catch (error) {
-    console.log(error.message);
 
+    if (response?.data?.items) {
+      dispatch({
+        type: HOME_VIDEOS_SUCCESS,
+        payload: {
+          videos: response.data.items,
+          nextPageToken: response.data.nextPageToken,
+          category: "All",
+        },
+      });
+    } else {
+      dispatch({
+        type: HOME_VIDEOS_FAIL,
+        payload: "No videos found",
+      });
+    }
+  } catch (error) {
     dispatch({
       type: HOME_VIDEOS_FAIL,
-      payload: error.message,
+      payload: getErrorMessage(error),
     });
-  } finally {
-    console.log("Request comtleted");
   }
 };
 
 export const getVideosByCategory = (keyword) => async (dispatch, getState) => {
   try {
-    dispatch({
-      type: HOME_VIDEOS_REQUEST,
-    });
+    dispatch({ type: HOME_VIDEOS_REQUEST });
 
-    const { data } = await request.get("/search", {
+    const response = await request.get("/search", {
       params: {
         part: "snippet",
         maxResults: 20,
@@ -68,57 +74,66 @@ export const getVideosByCategory = (keyword) => async (dispatch, getState) => {
         type: "video",
       },
     });
-    dispatch({
-      type: HOME_VIDEOS_SUCCESS,
-      payload: {
-        videos: data.items,
-        nextPageToken: data.nextPageToken,
-        category: keyword,
-      },
-    });
-  } catch (error) {
-    console.log(error.message);
 
+    if (response?.data?.items) {
+      dispatch({
+        type: HOME_VIDEOS_SUCCESS,
+        payload: {
+          videos: response.data.items,
+          nextPageToken: response.data.nextPageToken,
+          category: keyword,
+        },
+      });
+    } else {
+      dispatch({
+        type: HOME_VIDEOS_FAIL,
+        payload: "No videos found for this category",
+      });
+    }
+  } catch (error) {
     dispatch({
       type: HOME_VIDEOS_FAIL,
-      payload: error.message,
+      payload: getErrorMessage(error),
     });
-  } finally {
-    console.log("Request comtleted");
   }
 };
 
 export const getVideoById = (id) => async (dispatch) => {
   try {
-    dispatch({
-      type: SELECTED_VIDEOS_REQUEST,
-    });
-    const { data } = await request.get("/videos", {
+    dispatch({ type: SELECTED_VIDEOS_REQUEST });
+
+    const response = await request.get("/videos", {
       params: {
         part: "snippet,statistics",
-        id: id,
+        id,
       },
     });
 
+    console.log("API getVideoById response:", response);
+
+    const data = response?.data || { items: [] };
+    const video = data.items && data.items.length > 0 ? data.items[0] : {};
+
     dispatch({
       type: SELECTED_VIDEOS_SUCCESS,
-      payload: data.items[0],
+      payload: video,
     });
   } catch (error) {
-    console.log(error.message);
     dispatch({
       type: SELECTED_VIDEOS_FAIL,
-      payload: error.message,
+      payload:
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong",
     });
   }
 };
 
 export const getRelatedVideos = (id) => async (dispatch) => {
   try {
-    dispatch({
-      type: RELATED_VIDEO_REQUEST,
-    });
-    const { data } = await request.get("/search", {
+    dispatch({ type: RELATED_VIDEO_REQUEST });
+
+    const response = await request.get("/search", {
       params: {
         part: "snippet",
         relatedToVideoId: id,
@@ -127,26 +142,30 @@ export const getRelatedVideos = (id) => async (dispatch) => {
       },
     });
 
-    dispatch({
-      type: RELATED_VIDEO_SUCCESS,
-      payload: data.items,
-    });
+    if (response?.data?.items && response.data.items.length > 0) {
+      dispatch({
+        type: RELATED_VIDEO_SUCCESS,
+        payload: response.data.items,
+      });
+    } else {
+      dispatch({
+        type: RELATED_VIDEO_FAIL,
+        payload: "No related videos found",
+      });
+    }
   } catch (error) {
-    console.log(error.response.data.message);
     dispatch({
       type: RELATED_VIDEO_FAIL,
-      payload: error.response.data.message,
+      payload: getErrorMessage(error),
     });
   }
 };
 
 export const getVideosBySearch = (keyword) => async (dispatch) => {
   try {
-    dispatch({
-      type: SEARCHED_VIDEO_REQUEST,
-    });
+    dispatch({ type: SEARCHED_VIDEO_REQUEST });
 
-    const { data } = await request.get("/search", {
+    const response = await request.get("/search", {
       params: {
         part: "snippet",
         maxResults: 20,
@@ -154,32 +173,31 @@ export const getVideosBySearch = (keyword) => async (dispatch) => {
         type: "video,channel",
       },
     });
-    dispatch({
-      type: SEARCHED_VIDEO_SUCCESS,
-      payload: data.items,
-    });
-  } catch (error) {
-    console.log(error.message);
 
+    if (response?.data?.items) {
+      dispatch({
+        type: SEARCHED_VIDEO_SUCCESS,
+        payload: response.data.items,
+      });
+    } else {
+      dispatch({
+        type: SEARCHED_VIDEO_FAIL,
+        payload: "No results found for your search",
+      });
+    }
+  } catch (error) {
     dispatch({
       type: SEARCHED_VIDEO_FAIL,
-      payload: error.message,
+      payload: getErrorMessage(error),
     });
   }
 };
 
-export const getSubscribedChannel = (id) => async (dispatch, getState) => {
+export const getSubscribedChannel = () => async (dispatch, getState) => {
   try {
-    const { auth } = getState();
-    if (!auth.accessToken) {
-      throw new Error("Access token not found");
-    }
+    dispatch({ type: SUBSCRIPTION_CHANNEL_REQUEST });
 
-    dispatch({
-      type: SUBSCRIPTION_CHANNEL_REQUEST,
-    });
-
-    const { data } = await request.get("/subscriptions", {
+    const response = await request.get("/subscriptions", {
       params: {
         part: "snippet,contentDetails",
         mine: true,
@@ -189,60 +207,72 @@ export const getSubscribedChannel = (id) => async (dispatch, getState) => {
       },
     });
 
-    dispatch({
-      type: SUBSCRIPTION_CHANNEL_SUCCESS,
-      payload: data.items,
-    });
+    if (response?.data?.items) {
+      dispatch({
+        type: SUBSCRIPTION_CHANNEL_SUCCESS,
+        payload: response.data.items,
+      });
+    } else {
+      dispatch({
+        type: SUBSCRIPTION_CHANNEL_FAIL,
+        payload: "No subscription data found",
+      });
+    }
   } catch (error) {
-    console.log(error.response.data.message);
     dispatch({
       type: SUBSCRIPTION_CHANNEL_FAIL,
-      payload: error.response.data,
+      payload: getErrorMessage(error),
     });
   }
 };
 
-// export const getVideosByChannel = (id) => async (dispatch) => {
-//   try {
-//     dispatch({
-//       type: CHANNEL_VIDEOS_REQUEST,
-//     });
+export const getVideosByChannel = (id) => async (dispatch) => {
+  try {
+    dispatch({ type: CHANNEL_VIDEOS_REQUEST });
 
-//     //1. get upload playlist id
-//     const {
-//       data: { items },
-//     } = await request.get("/channels", {
-//       params: {
-//         part: "contentDetails",
-//         id: id,
-//       },
-//     });
+    const response = await request.get("/channels", {
+      params: {
+        part: "contentDetails",
+        id,
+      },
+    });
 
-//     // if (!items || items.length === 0) {
-//     //   throw new Error("No channels found with the provided ID");
-//     // }
+    const items = response?.data?.items;
 
-//     const uploadPlaylistId = items[0].contentDetails.relatedPlaylistId.uploads;
+    const uploadPlaylistId =
+      items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
 
-//     //2. get the values using the id
-//     const { data } = await request.get("/playlistItems", {
-//       params: {
-//         part: "contentDetails,snippet",
-//         playlistId: uploadPlaylistId,
-//         maxResults: 30,
-//       },
-//     });
+    if (!uploadPlaylistId) {
+      dispatch({
+        type: CHANNEL_VIDEOS_FAIL,
+        payload: "Could not find uploads playlist for this channel",
+      });
+      return;
+    }
 
-//     console.log(data.items);
-//     dispatch({
-//       type: CHANNEL_VIDEOS_SUCCESS,
-//       payload: data.items,
-//     });
-//   } catch (error) {
-//     console.log(error.response.data.message);
-//     dispatch({
-//       type: CHANNEL_VIDEOS_FAIL,
-//       payload: error.response.data,
-//     });
-//   }
-// };
+    const playlistResponse = await request.get("/playlistItems", {
+      params: {
+        part: "snippet,contentDetails",
+        playlistId: uploadPlaylistId,
+        maxResults: 30,
+      },
+    });
+
+    if (playlistResponse?.data?.items) {
+      dispatch({
+        type: CHANNEL_VIDEOS_SUCCESS,
+        payload: playlistResponse.data.items,
+      });
+    } else {
+      dispatch({
+        type: CHANNEL_VIDEOS_FAIL,
+        payload: "No videos found in this channel's uploads playlist",
+      });
+    }
+  } catch (error) {
+    dispatch({
+      type: CHANNEL_VIDEOS_FAIL,
+      payload: getErrorMessage(error),
+    });
+  }
+};

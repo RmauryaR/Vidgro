@@ -1,35 +1,17 @@
-// // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// import firebase from "firebase/app";
-
-// import "firebase/auth";
-// const firebaseConfig = {
-//   apiKey: "AIzaSyAhcxbK0Lnszk60CnXrK-uZQikPAPB9Y1w",
-//   authDomain: "my-rgm.firebaseapp.com",
-//   projectId: "my-rgm",
-//   storageBucket: "my-rgm.appspot.com",
-//   messagingSenderId: "984230116746",
-//   appId: "1:984230116746:web:4b741c0b8138d535e95c73",
-//   measurementId: "G-QCSF9XJ3RY",
-// };
-
-// firebase.initializeApp(firebaseConfig);
-
-// export default firebase.auth();
-
 //---------------------------------------------------------------------------------------------------------------
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDhe8PW7scTdBvHnoD_e6KgBv_JLeDzkDY",
-  authDomain: "my-rgm.firebaseapp.com",
-  projectId: "my-rgm",
-  storageBucket: "my-rgm.appspot.com",
-  messagingSenderId: "984230116746",
-  appId: "1:984230116746:web:4b741c0b8138d535e95c73",
-  measurementId: "G-QCSF9XJ3RY",
-};
 // Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyAv-WyCV2fB9PaG8_yMpS7sSNarpDCe5tU",
+  authDomain: "vidgro--clone.firebaseapp.com",
+  projectId: "vidgro--clone",
+  storageBucket: "vidgro--clone.appspot.com",
+  messagingSenderId: "117194065794",
+  appId: "1:117194065794:web:cc30a651b21f0c1524719b",
+  measurementId: "G-C529T6TCMN",
+};
 const app = initializeApp(firebaseConfig);
 // Initialize Firebase Auth
 const auth = getAuth(app);
